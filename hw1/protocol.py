@@ -1,6 +1,12 @@
 from socket import timeout as SocketTimeoutError
 
-from common import UDPBasedProtocol, Packet, MAX_PAYLOAD_SIZE, HEADER_SIZE
+from Packet import Packet
+
+from UDPBasedProtocol import UDPBasedProtocol
+
+
+HEADER_SIZE = 8
+MAX_PAYLOAD_SIZE = 2**15 - HEADER_SIZE # using 2**16 (max UDP datagram size) gives OSError
 
 
 class MyTCPProtocol(UDPBasedProtocol):

@@ -1,23 +1,4 @@
 from __future__ import annotations
-import socket
-
-
-HEADER_SIZE = 8
-MAX_PAYLOAD_SIZE = 2**15 - HEADER_SIZE # using 2**16 (max UDP datagram size) gives OSError
-
-class UDPBasedProtocol:
-    def __init__(self, *, local_addr, remote_addr):
-        self.udp_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-        self.remote_addr = remote_addr
-        self.udp_socket.bind(local_addr)
-        self.udp_socket.settimeout(0.00001)
-
-    def sendto(self, data):
-        return self.udp_socket.sendto(data, self.remote_addr)
-
-    def recvfrom(self, n):
-        msg, addr = self.udp_socket.recvfrom(n)
-        return msg
 
 
 class Packet():
