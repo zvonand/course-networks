@@ -6,7 +6,9 @@ from UDPBasedProtocol import UDPBasedProtocol
 
 
 HEADER_SIZE = 8
-MAX_PAYLOAD_SIZE = 2**15 - HEADER_SIZE # using 2**16 (max UDP datagram size) gives OSError
+MAX_PAYLOAD_SIZE = (
+    2**15 - HEADER_SIZE
+)  # using 2**16 (max UDP datagram size) gives OSError
 
 
 class MyTCPProtocol(UDPBasedProtocol):
@@ -42,7 +44,7 @@ class MyTCPProtocol(UDPBasedProtocol):
 
     def _reorder(self) -> bytes:
         data = b""
-        self._ingress.sort(key = lambda packet : packet.seq_num)
+        self._ingress.sort(key=lambda packet: packet.seq_num)
         while len(self._ingress) != 0:
             first_incoming = self._ingress[0]
 
@@ -56,24 +58,24 @@ class MyTCPProtocol(UDPBasedProtocol):
                 break
 
         return data
-    
-    def _send(self, packet : Packet, ordinary = True) -> int:
+
+    def _send(self, packet: Packet, ordinary=True) -> int:
         if ordinary:
             self.seq_num += len(packet.data)
 
         return self.sendto(packet.serialize()) - HEADER_SIZE
-    
+
     def _ack(self):
         packet = Packet(self.seq_num, self.ack_num)
         self._send(packet)
-    
+
     # As it is a "reliable" protocol, it must be sync
     def send(self, data: bytes) -> int:
         bytes_sent = 0
         data_len = len(data)
 
         while bytes_sent < data_len:
-            payload = data[bytes_sent:min(bytes_sent + MAX_PAYLOAD_SIZE, data_len)]
+            payload = data[bytes_sent : min(bytes_sent + MAX_PAYLOAD_SIZE, data_len)]
             packet = Packet(self.seq_num, self.ack_num, payload)
             self._send(packet)
             self._egress_window.append(packet)
@@ -90,23 +92,23 @@ class MyTCPProtocol(UDPBasedProtocol):
 
     def recv(self, n: int) -> bytes:
         data = b""
-        
+
         if len(self._read_buffer):
             read_from_buffer = min(n, len(self._read_buffer))
             data += self._read_buffer[:read_from_buffer]
             self._read_buffer = self._read_buffer[read_from_buffer:]
-        
+
         while len(data) < n:
             try:
                 packets = self._recv()
                 self._ingress.extend(packets)
-                data += self._reorder()                    
+                data += self._reorder()
             except SocketTimeoutError:
                 self._ack()
 
         self._ack()
-        
+
         if len(data) > n:
             self._read_buffer += data[n:]
-        
+
         return data[:n]
