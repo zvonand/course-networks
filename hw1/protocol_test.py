@@ -41,6 +41,9 @@ def run_echo_test(iterations, msg_size):
     client_thread.join()
     server_thread.join()
 
+    a.close()
+    b.close()
+
 
 current_netem_state = None
 

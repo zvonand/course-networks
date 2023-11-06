@@ -105,6 +105,8 @@ class MyTCPProtocol(UDPBasedProtocol):
                 data += self._reorder()
             except SocketTimeoutError:
                 self._ack()
+            finally:
+                self._ack()
 
         self._ack()
 
